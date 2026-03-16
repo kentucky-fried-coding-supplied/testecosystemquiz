@@ -201,47 +201,8 @@ function loadNextQuestion() {
   currentQuestion++;
   selectedRadio.checked = false;
 
-  if (currentQuestion === totalQuestions - 1) {
-    nextButton.textContent = 'Finish';
-  }
-
   if (currentQuestion === totalQuestions) {
-    container.style.display = 'none';
-    let max = -Infinity;
-    let winner = '';
-    for (const type in scores) {
-      if (scores[type] > max) {
-        max = scores[type];
-        winner = type;
-      }
-    }
-    const sorted = Object.entries(scores)
-      .sort((a, b) => b[1] - a[1]);
-
-    const [first = ['', 0], second = ['', 0]] = sorted;
-    const firstType = first[0];
-    const secondType = second[0];
-    const firstScore = first[1];
-    const secondScore = second[1];
-
-    let extraLine = '';
-    if (secondScore > 0 && firstScore !== secondScore) {
-      const leanPct = Math.round((firstScore / (firstScore + secondScore)) * 100);
-      extraLine = `<p>You lean ${personalityTypes[firstType]} by ${leanPct}% over ${personalityTypes[secondType]}.</p>`;
-    } else if (firstScore === secondScore && firstScore > 0) {
-      extraLine = `<p>It's a tie between ${personalityTypes[firstType]} and ${personalityTypes[secondType]}.</p>`;
-    }
-
-    result.innerHTML = `
-      <h1 class="final-score">Your Role: ${personalityTypes[firstType]}</h1>
-      <div class="summary">
-        <h2>Summary</h2>
-        <p>You scored highest in ${personalityTypes[firstType]} (${firstScore}).</p>
-        <p>Second place: ${personalityTypes[secondType]} (${secondScore}).</p>
-        ${extraLine}
-      </div>
-      <button class="restart">Restart Quiz</button>
-    `;
+    showResults();
     return;
   }
 
@@ -272,6 +233,58 @@ function restartQuiz(e) {
     // Reload quiz to the start
     location.reload();
   }
+}
+
+function showResults() {
+  container.style.display = 'none';
+
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const [first = ['',0], second = ['',0]] = sorted;
+  const [firstType, firstScore] = first;
+  const [secondType, secondScore] = second;
+  const leanPct = firstScore + secondScore > 0
+    ? Math.round((firstScore / (firstScore + secondScore)) * 100)
+    : 100;
+  const ratioText = firstScore === secondScore
+    ? `It's a tie between ${personalityTypes[firstType]} and ${personalityTypes[secondType]}.`
+    : `You lean ${personalityTypes[firstType]} by ${leanPct}% over ${personalityTypes[secondType]}.`;
+
+  result.innerHTML = `
+    <h1 class="final-score">Your Role: ${personalityTypes[firstType]}</h1>
+    <div class="summary">
+      <p>Top: ${personalityTypes[firstType]} (${firstScore})</p>
+      <p>Second: ${personalityTypes[secondType] || 'N/A'} (${secondScore || 0})</p>
+      <p>${ratioText}</p>
+      <div id="personality-detail">Loading your personality details...</div>
+      <button class="restart">Restart Quiz</button>
+    </div>
+  `;
+
+  const personalityFile = `personalities/${firstType}.html`;
+  const detailDiv = document.getElementById('personality-detail');
+  if (!detailDiv) return;
+
+  detailDiv.innerHTML =
+    personalityDetails?.[firstType] ||
+    `<div><h3>No details found for ${firstType}</h3></div>`;
+
+  // fetch(personalityFile)
+  //   .then((res) => {
+  //     if (!res.ok) throw new Error(`File not found`);
+  //     return res.text();
+  //   })
+  //   .then((htmlText) => {
+  //     const parser = new DOMParser();
+  //     const doc = parser.parseFromString(htmlText, 'text/html');
+  //     detailDiv.innerHTML = doc.body.innerHTML || '<p>No content in personality file.</p>';
+  //   })
+  //   .catch((err) => {
+  //     detailDiv.innerHTML = `
+  //       <p>Could not load personality file "${personalityFile}".</p>
+  //       <p>Make sure this file exists and you are running via HTTP, not file://.</p>
+  //       <p>${err.message}</p>
+  //     `;
+  //   });
 }
 
 generateQuestions(currentQuestion);
