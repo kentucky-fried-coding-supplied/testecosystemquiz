@@ -136,6 +136,17 @@ const questions = [
 let currentQuestion = 0;
 let scores = { offender: 0, defender: 0, tender: 0, mender: 0, pretender: 0, connector: 0, upender: 0 };
 let selectedAnswersData = [];
+let selectedActionId = null;
+
+const actionOptions = [
+  { id: 'env', label: 'Environment' },
+  { id: 'care', label: 'Social Care' },
+  { id: 'just', label: 'Social Justice' },
+  { id: 'econ', label: 'Economy' },
+  { id: 'tech', label: 'Technology' },
+  { id: 'demo', label: 'Democracy' }
+];
+
 const totalQuestions = questions.length;
 
 const container = document.querySelector('.quiz-container');
@@ -225,14 +236,30 @@ function loadPreviousQuestion() {
 
 // Function to reset and restart the quiz;
 function restartQuiz(e) {
-  if (e.target.matches('button')) {
-    // Reset array index and score
-    currentQuestion = 0;
-    scores = { offender: 0, defender: 0, tender: 0, mender: 0, pretender: 0, connector: 0, upender: 0 };
-    selectedAnswersData = [];
-    // Reload quiz to the start
-    location.reload();
+  if (!e.target.matches('button.restart')) return;
+
+  currentQuestion = 0;
+  scores = { offender: 0, defender: 0, tender: 0, mender: 0, pretender: 0, connector: 0, upender: 0 };
+  selectedAnswersData = [];
+  location.reload();
+}
+
+function renderFinalImageLinks(personalityType, actionId) {
+  const images = finalResults?.[personalityType]?.[actionId];
+  if (!images || !Array.isArray(images) || images.length === 0) {
+    return `<p>No image results are available for this selection yet.</p>`;
   }
+
+  return `
+    <div class="final-images-grid">
+      ${images.map((item) => `
+        <a class="final-image-card" href="${item.href}" target="_blank" rel="noopener noreferrer">
+          <img src="${item.src}" alt="${item.alt}" />
+          <p>${item.alt}</p>
+        </a>
+      `).join('')}
+    </div>
+  `;
 }
 
 function showResults() {
@@ -256,36 +283,46 @@ function showResults() {
       <p>Second: ${personalityTypes[secondType] || 'N/A'} (${secondScore || 0})</p>
       <p>${ratioText}</p>
       <div id="personality-detail">Loading your personality details...</div>
+    </div>
+    <div class="action-section">
+      <h2>Choose one focus to tailor your recommended group!</h2>
+      <div id="action-buttons" class="action-buttons"></div>
+      <div id="action-detail" class="action-detail">Select your preferred policy arena.</div>
+      <div id="final-combined-result" class="final-combined-result"></div>
       <button class="restart">Restart Quiz</button>
     </div>
   `;
 
-  const personalityFile = `personalities/${firstType}.html`;
-  const detailDiv = document.getElementById('personality-detail');
-  if (!detailDiv) return;
+  const personalityDetail = document.getElementById('personality-detail');
+  if (personalityDetail) {
+    personalityDetail.innerHTML = getPersonalityDetail(firstType);
+  }
 
-  detailDiv.innerHTML =
-    personalityDetails?.[firstType] ||
-    `<div><h3>No details found for ${firstType}</h3></div>`;
+  const buttonsContainer = document.getElementById('action-buttons');
+  const detailContainer = document.getElementById('action-detail');
+  const combinedContainer = document.getElementById('final-combined-result');
 
-  // fetch(personalityFile)
-  //   .then((res) => {
-  //     if (!res.ok) throw new Error(`File not found`);
-  //     return res.text();
-  //   })
-  //   .then((htmlText) => {
-  //     const parser = new DOMParser();
-  //     const doc = parser.parseFromString(htmlText, 'text/html');
-  //     detailDiv.innerHTML = doc.body.innerHTML || '<p>No content in personality file.</p>';
-  //   })
-  //   .catch((err) => {
-  //     detailDiv.innerHTML = `
-  //       <p>Could not load personality file "${personalityFile}".</p>
-  //       <p>Make sure this file exists and you are running via HTTP, not file://.</p>
-  //       <p>${err.message}</p>
-  //     `;
-  //   });
+  if (buttonsContainer) {
+    buttonsContainer.innerHTML = actionOptions
+      .map((action) => `<button class="action-button" data-action="${action.id}">${action.label}</button>`)
+      .join('');
+
+    buttonsContainer.querySelectorAll('.action-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        selectedActionId = button.dataset.action;
+        const descriptor = policyDetails?.[selectedActionId] || '<p>No descriptor available.</p>';
+        detailContainer.innerHTML = descriptor;
+
+        const finalHtml = renderFinalImageLinks(firstType, selectedActionId);
+        combinedContainer.innerHTML = `
+          <strong>Final Combined Result:</strong>
+          ${finalHtml}
+        `;
+      });
+    });
+  }
 }
+
 
 generateQuestions(currentQuestion);
 nextButton.addEventListener('click', loadNextQuestion);
