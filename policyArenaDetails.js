@@ -61,8 +61,8 @@ const policyDetails = {
         <p>Related Policies from Map/List:</p>
         <ul>
             <li><a href="#"><i>Ranked Choice Voting</i></li>
-            <li><a href="#"><i>Undo Citizens United</i></li>
-            <li><a href="#"><i>Required Adherence to the Results of Proposition Votes</i></li>
+            <li><a href="#"><i>Overturn Citizens United</i></li>
+            <li><a href="#"><i>New Telecommunications Act</i></li>
         </ul>
     </div>`
 };

@@ -160,11 +160,56 @@ button:focus {
 .final-combined-result {
   margin-top: 1rem;
   padding: 0.8rem;
-  background: rgba(20, 80, 40, 0.1);
-  border: 1px solid rgba(20, 80, 40, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 6px;
   color: #0a3d0f;
-  font-weight: 600;
+  font-weight: 400;
+  text-align: left;
+}
+
+.final-org-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+  text-align: left;
+}
+
+.org-card {
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.org-card img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+}
+
+.org-card-body {
+  padding: 0.6rem 0.75rem 0.8rem;
+}
+
+.org-card-body h3 {
+  margin: 0;
+  margin-bottom: 0.2rem;
+  font-size: 1rem;
+}
+.org-card-body a {
+  color: #0b37a4;
+  text-decoration: none;
+}
+
+.org-card-body p {
+  margin: 0.2rem 0;
+  color: #111;
 }
 
 .final-images-grid {

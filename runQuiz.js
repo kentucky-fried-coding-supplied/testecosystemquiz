@@ -244,20 +244,47 @@ function restartQuiz(e) {
   location.reload();
 }
 
-function renderFinalImageLinks(personalityType, actionId) {
-  const images = finalResults?.[personalityType]?.[actionId];
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return `<p>No image results are available for this selection yet.</p>`;
+function getFinalOrganizations(personalityType, actionId) {
+  if (!Array.isArray(finalResults)) return [];
+  return finalResults.filter((org) =>
+    Array.isArray(org.matches) && org.matches.some((match) =>
+      match.personality === personalityType && match.policy === actionId
+    )
+  );
+}
+
+function renderFinalOrganizations(personalityType, actionId) {
+  const orgs = getFinalOrganizations(personalityType, actionId);
+  if (!orgs.length) {
+    return `<p>No matching organizations found for this combination yet.</p>`;
   }
 
+  const policyLabels = actionOptions.reduce((acc, option) => {
+    acc[option.id] = option.label;
+    return acc;
+  }, {});
+
   return `
-    <div class="final-images-grid">
-      ${images.map((item) => `
-        <a class="final-image-card" href="${item.href}" target="_blank" rel="noopener noreferrer">
-          <img src="${item.src}" alt="${item.alt}" />
-          <p>${item.alt}</p>
-        </a>
-      `).join('')}
+    <div class="final-org-grid">
+      ${orgs.map((org) => {
+        const combos = org.matches
+          .map((match) => `${personalityTypes[match.personality] || match.personality} + ${policyLabels[match.policy] || match.policy}`)
+          .join(', ');
+
+        return `
+          <article class="org-card">
+            <a href="${org.website}" target="_blank" rel="noopener noreferrer">
+              <img src="${org.image}" alt="${org.name}" />
+            </a>
+            <div class="org-card-body">
+              <h3><a href="${org.website}" target="_blank" rel="noopener noreferrer">${org.name}</a></h3>
+              <p>${org.description}</p>
+              <!--<p><strong>Matches:</strong> ${combos}</p> -->
+              <p><a href="${org.website}" target="_blank" rel="noopener noreferrer">Visit Website</a></p>
+            </div>
+          </article>
+        `;
+      }).join('')}
     </div>
   `;
 }
@@ -313,7 +340,7 @@ function showResults() {
         const descriptor = policyDetails?.[selectedActionId] || '<p>No descriptor available.</p>';
         detailContainer.innerHTML = descriptor;
 
-        const finalHtml = renderFinalImageLinks(firstType, selectedActionId);
+        const finalHtml = renderFinalOrganizations(firstType, selectedActionId);
         combinedContainer.innerHTML = `
           <strong>Final Combined Result:</strong>
           ${finalHtml}
